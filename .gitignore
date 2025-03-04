@@ -1,0 +1,32 @@
+venv
+db.sqlite3
+migrations
+.idea/
+__pycache__
+.env
+
+# macOS
+._*
+.DS_Store
+.fseventsd
+.Spotlight-V100
+
+# Windows
+Thumbs.db*
+ehthumbs*.db
+[Dd]esktop.ini
+$RECYCLE.BIN/
+
+# Visual Studio
+.vscode/
+.history/
+*.code-workspace
+*Zone.Identifier
+
+migrations/
+migration/
+.idea
+.idea/*
+media/
+
+*.log
