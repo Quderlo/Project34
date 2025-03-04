@@ -28,6 +28,12 @@ class ElectronicLock(models.Model):
         editable=False,
     )
 
+    secret_key = models.CharField(
+        max_length=255,
+        verbose_name='Секретный ключ',
+        help_text='Секретный ключ к API замка',
+    )
+
     def __str__(self):
         return f"Замок {self.ip_address}"
 
@@ -36,9 +42,6 @@ class ElectronicLock(models.Model):
         super().save(*args, **kwargs)
 
     def _check_connection(self):
-
-        # TODO: Сделать проверку rtsp
-
         try:
             response = requests.get(self.status_link, timeout=3)
             return response.status_code == 200

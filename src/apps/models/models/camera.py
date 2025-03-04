@@ -1,3 +1,4 @@
+import requests
 from django.db import models
 
 from apps.models.models.elock import ElectronicLock
@@ -71,6 +72,18 @@ class Camera(models.Model):
 
         auth_part = f"{self.username}:{self.password}@"
         return f"rtsp://{auth_part}{self.ip_address}:{self.port}{self.rtsp_path}"
+
+
+    def _check_connection(self):
+        # TODO: Сделать проверку rtsp
+        try:
+            link = str(self.ip_address) + ":" + str(self.port)
+            response = requests.get(link, timeout=3)
+            return response.status_code == 200
+
+        except Exception:
+            return False
+        pass
 
     def save(self, *args, **kwargs):
         if not self.rtsp_link:
