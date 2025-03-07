@@ -13,36 +13,27 @@ class Camera(models.Model):
 
     ip_address = models.GenericIPAddressField(
         verbose_name="IP адрес",
-        help_text='IP адрес камеры внутри сети',
+        help_text='IP адрес сервиса внутри сети',
     )
 
     port = models.PositiveIntegerField(
         verbose_name='Порт',
-        help_text='Порт у камеры',
-    )
-
-    rtsp_path = models.CharField(
-        max_length=255,
-        verbose_name='Путь RTSP',
-        help_text="Путь RTSP потока. Например, '/live/av0' или 'Streaming/Channels/101'."
-    )
-
-    username = models.CharField(
-        max_length=255,
-        verbose_name='Имя пользователя',
-        help_text='Имя которое указывается при аутентификации к камере',
-    )
-
-    password = models.CharField(
-        max_length=255,
-        verbose_name='Пароль',
-        help_text='Пароль который указывается при аутентификации к камере',
-    )
-
-    rtsp_link = models.URLField(
-        verbose_name='RTSP - ссылка',
         blank=True,
-        help_text='Если ссылка не указана, будет автоматически сгенерирована.',
+        null=True,
+        help_text='Порт у сервиса если имеется',
+    )
+
+    image_path = models.CharField(
+        max_length=50,
+        verbose_name = 'Путь к изображению',
+        help_text = 'Путь на сервисе к изображению например /image/0',
+    )
+
+    image_link = models.URLField(
+        max_length=100,
+        verbose_name='Ссылка на изображение',
+        help_text='Ссылка на сервис отдающий кадры',
+        blank=True,
     )
 
     is_live = models.BooleanField(
@@ -63,19 +54,7 @@ class Camera(models.Model):
     def __str__(self):
         return f"{self.name} ({self.ip_address})"
 
-    def generate_rtsp_link(self) -> str:
-        """
-        Генерирует RTSP-ссылку с использованием данных авторизации и пути RTSP.
-        """
-        if self.rtsp_link:
-            return self.rtsp_link
-
-        auth_part = f"{self.username}:{self.password}@"
-        return f"rtsp://{auth_part}{self.ip_address}:{self.port}{self.rtsp_path}"
-
-
     def _check_connection(self):
-        # TODO: Сделать проверку rtsp
         try:
             link = str(self.ip_address) + ":" + str(self.port)
             response = requests.get(link, timeout=3)
@@ -86,8 +65,12 @@ class Camera(models.Model):
         pass
 
     def save(self, *args, **kwargs):
-        if not self.rtsp_link:
-            self.rtsp_link = self.generate_rtsp_link()
+        link = self.ip_address
+        if self.port:
+            link += ":" + str(self.port)
+
+        self.image_link = 'http://' + link + self.image_path
+
         super().save(*args, **kwargs)
 
 

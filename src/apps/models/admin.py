@@ -6,7 +6,7 @@ from django.contrib import admin
 
 @admin.register(Person)
 class PersonAdmin(admin.ModelAdmin):
-    list_display = ('full_name', 'is_active', 'groups_list')
+    list_display = ('full_name', 'is_active', 'groups_list', 'face_data')
     list_filter = ('is_active', 'groups')
     search_fields = ('first_name', 'last_name', 'patronymic')
     filter_horizontal = ('groups',)
@@ -18,7 +18,7 @@ class PersonAdmin(admin.ModelAdmin):
                 ('Персональные данные', {
                     'fields': (
                         ('first_name', 'last_name', 'patronymic'),
-                        'is_active'
+                        'is_active',
                     )
                 }),
                 ('Системная информация', {
@@ -33,7 +33,7 @@ class PersonAdmin(admin.ModelAdmin):
             ('Персональные данные', {
                 'fields': (
                     ('first_name', 'last_name', 'patronymic'),
-                    'is_active'
+                    'is_active',
                 )
             }),
             ('Группы доступа', {
@@ -43,7 +43,7 @@ class PersonAdmin(admin.ModelAdmin):
 
     def get_readonly_fields(self, request, obj=None):
         if obj:
-            return ('created_at', 'last_seen')
+            return 'created_at', 'last_seen'
         return ()
 
     # Поле метод
@@ -77,27 +77,14 @@ class CameraAdmin(admin.ModelAdmin):
         ('Основные данные', {
             'fields': (
                 'name',
-                ('ip_address', 'port'),
+                ('ip_address', 'port', 'image_path', 'image_link'),
                 'electronic_lock'
             )
-        }),
-        ('Авторизация', {
-            'fields': (
-                'username',
-                'password',
-                'rtsp_path'
-            )
-        }),
-        ('RTSP-ссылка', {
-            'fields': ('rtsp_link',),
-            'description': 'Сгенерируется автоматически при сохранении'
         }),
         ('Статус', {
             'fields': ('is_live',)
         })
     )
-
-    readonly_fields = ('rtsp_link',)
 
     def display_name(self, obj):
         return f"{obj.name} ({obj.ip_address})"
@@ -114,7 +101,7 @@ class CameraAdmin(admin.ModelAdmin):
     status_indicator.short_description = 'Статус'
 
     def connection_info(self, obj):
-        return f"{obj.username}:{obj.port}"
+        return f"{obj.name}:{obj.port}"
     connection_info.short_description = 'Подключение'
 
 

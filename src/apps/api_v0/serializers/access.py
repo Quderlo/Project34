@@ -2,12 +2,14 @@ from rest_framework import serializers
 import base64
 import binascii
 
+from apps.api_v0.authentication import SessionAuthNoCSRF
 from apps.models.models import AccessTime, Camera, Person
 
 
 class AccessModelSerializer(serializers.ModelSerializer):
     face_data = serializers.CharField(write_only=True)
     camera_id = serializers.IntegerField(write_only=True)
+    authentication_classes = [SessionAuthNoCSRF]
 
     class Meta:
         model = AccessTime

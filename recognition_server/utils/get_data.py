@@ -1,23 +1,33 @@
 import requests
 
+from app_config import DjangoServer
+from recognition_server.utils.authenticate import login_and_get_session
+
+
 def get_camera_urls() -> list[dict]:
     """
     Получает данные о камерах с API и извлекает ID и RTSP-ссылку
     Возвращает список словарей вида [{'id': int, 'rtsp_link': str}]
     """
+
+    cookie = login_and_get_session()
+
+    url = DjangoServer.url + DjangoServer.endpoints['camera']
+
     try:
-        response = requests.get('http://127.0.0.1:8000/camera', timeout=5)
+        response = requests.get(url, timeout=5, cookies=cookie)
         response.raise_for_status()
 
         cameras_data = response.json()
 
+
         return [
             {
                 "id": cam["id"],
-                "rtsp_link": cam["rtsp_link"]
+                "url": cam["image_link"]
             }
             for cam in cameras_data
-            if "id" in cam and "rtsp_link" in cam
+            if "id" in cam and "image_link" in cam
         ]
 
     except requests.exceptions.RequestException as e:
