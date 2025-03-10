@@ -23,7 +23,7 @@ class ElectronicLockModelViewSet(viewsets.ModelViewSet):
         """Открытие замка с полной проверкой ответа"""
         try:
             lock = self._get_lock_obj(request, pk)
-            success, message = lock.open_lock(request.user)
+            success, message = lock.open_lock()
 
             if success:
                 logger.info(f"User {request.user} opened lock {pk}")
@@ -43,7 +43,7 @@ class ElectronicLockModelViewSet(viewsets.ModelViewSet):
         """Закрытие замка с подтверждением состояния"""
         try:
             lock = self._get_lock_obj(request, pk)
-            success, message = lock.close_lock(request.user)
+            success, message = lock.close_lock()
 
             if success:
                 logger.info(f"User {request.user} closed lock {pk}")

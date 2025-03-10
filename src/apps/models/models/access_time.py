@@ -29,6 +29,7 @@ class AccessTime(models.Model):
         return f'{self.people} {self.created_at} {self.camera}'
 
     def save(self, *args, **kwargs):
+        self.camera.electronic_lock.open_lock()
         super().save(*args, **kwargs)
 
     def delete(self, *args, **kwargs):
