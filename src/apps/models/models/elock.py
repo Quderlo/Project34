@@ -8,6 +8,7 @@ from django.db import models
 import requests
 from requests import RequestException
 
+
 User = get_user_model()
 logger = logging.getLogger(__name__)
 
@@ -120,32 +121,31 @@ class ElectronicLock(models.Model):
 
         return False, self.ErrorMessages.INVALID_STATUS
 
-    def _perform_lock_action(self, url: str, action: str, user: User) -> Tuple[bool, str]:
+    def _perform_lock_action(self, url: str, action: str) -> Tuple[bool, str]:
         """Общий метод для выполнения действий с замком"""
         success, message, data = self._make_request(url)
 
         if not success:
-            self.log_action(action + "_FAILED", user, success)
+            self.log_action(action + "_FAILED", success)
             return False, message
 
         if data and data.get('action') == 'success':
-            self.log_action(action, user, True)
+            self.log_action(action, True)
             return True, message
 
-        self.log_action(action + "_ERROR", user, False)
+        self.log_action(action + "_ERROR", False)
         return False, self.ErrorMessages.ACTION_FAILED
 
-    def open_lock(self, user: User) -> Tuple[bool, str]:
-        return self._perform_lock_action(self.unlock_link, "OPEN", user)
+    def open_lock(self) -> Tuple[bool, str]:
+        return self._perform_lock_action(self.unlock_link, "OPEN")
 
-    def close_lock(self, user: User) -> Tuple[bool, str]:
-        return self._perform_lock_action(self.lock_link, "CLOSE", user)
+    def close_lock(self) -> Tuple[bool, str]:
+        return self._perform_lock_action(self.lock_link, "CLOSE")
 
-    def log_action(self, action: str, user: User, status: bool):
+    def log_action(self, action: str, status: bool):
         """Расширенное логирование действий"""
         LockLog.objects.create(
             lock=self,
-            user=user,
             action=action,
             status=status,
             details=f"IP: {self.ip_address}"
@@ -153,7 +153,6 @@ class ElectronicLock(models.Model):
 
 class LockLog(models.Model):
     lock = models.ForeignKey(ElectronicLock, on_delete=models.CASCADE)
-    user = models.ForeignKey(User, on_delete=models.SET_NULL, null=True)
     action = models.CharField(max_length=10)
     timestamp = models.DateTimeField(auto_now_add=True)
     status = models.BooleanField()

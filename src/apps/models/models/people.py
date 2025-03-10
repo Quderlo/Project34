@@ -2,8 +2,6 @@ from django.contrib.auth.models import Group
 from django.db import models
 from django.utils import timezone
 
-from apps.models.models.camera import Camera
-
 
 class Person(models.Model):
     first_name = models.CharField(

@@ -63,9 +63,10 @@ class AccessModelSerializer(serializers.ModelSerializer):
                     problematic_users.append(person.id)
                     continue
 
-                similarity = self._cosine_similarity(input_vector, db_vector)
+                similarity = np.linalg.norm(np.array(db_vector) - np.array(input_vector))
+                # similarity = self._cosine_similarity(input_vector, db_vector)
 
-                if similarity > best_similarity and similarity > threshold:
+                if 1 - similarity > best_similarity and 1 - similarity > threshold:
                     best_similarity = similarity
                     best_match = person
                     print('similarity=', similarity)

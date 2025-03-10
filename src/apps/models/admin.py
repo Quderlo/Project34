@@ -195,7 +195,7 @@ class AccessTimeAdmin(admin.ModelAdmin):
 
 @admin.register(LockLog)
 class LockLogAdmin(admin.ModelAdmin):
-    list_display = ('lock', 'user', 'action', 'timestamp', 'status', 'details')
+    list_display = ('lock', 'action', 'timestamp', 'status', 'details')
 
     def has_add_permission(self, request):
         return False

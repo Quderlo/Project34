@@ -28,6 +28,9 @@ class AccessTime(models.Model):
     def __str__(self):
         return f'{self.people} {self.created_at} {self.camera}'
 
+    def save(self, *args, **kwargs):
+        super().save(*args, **kwargs)
+
     def delete(self, *args, **kwargs):
         raise PermissionError("Удаление записей запрещено")
 
