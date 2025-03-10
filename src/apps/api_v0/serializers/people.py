@@ -70,7 +70,7 @@ class PeopleModelSerializer(serializers.ModelSerializer):
             shape = self.shape_predictor(rgb_image, faces[0])
             descriptor = self.face_recognizer.compute_face_descriptor(rgb_image, shape)
 
-            return np.array(descriptor).tobytes()
+            return np.array(descriptor, dtype=np.float32).tobytes()
 
         except Exception as e:
             raise serializers.ValidationError(f"Ошибка обработки лица: {str(e)}")

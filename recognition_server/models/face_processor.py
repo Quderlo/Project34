@@ -21,10 +21,13 @@ class FaceProcessor:
             shape = self.sp(rgb_image, detection)
             descriptor = self.facerec.compute_face_descriptor(rgb_image, shape)
 
-            # Конвертация дескриптора в бинарный формат и base64
-            descriptor_bytes = np.array(descriptor, dtype=np.float32).tobytes()
-            face_data_b64 = base64.b64encode(descriptor_bytes).decode('utf-8')
+            # Конвертация дескриптора в numpy array и вывод размерности
+            descriptor_array = np.array(descriptor, dtype=np.float32)
 
-            results.append(face_data_b64)
+            # Преобразование numpy-массива в список (уже сериализуемый формат)
+            face_data_list = descriptor_array.tolist()
+            print(face_data_list)
+
+            results.append(face_data_list)
 
         return results

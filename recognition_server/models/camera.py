@@ -1,3 +1,5 @@
+import base64
+
 import numpy
 import cv2
 import requests
@@ -45,6 +47,8 @@ class Camera(object):
                 "face_data": face_data_b64,
                 "camera_id": self.pk
             }
+
+            print(face_data_b64)
 
             headers = {
                 "Content-Type": "application/json"
