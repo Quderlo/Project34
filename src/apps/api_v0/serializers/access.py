@@ -1,6 +1,8 @@
-from rest_framework import serializers
 import base64
 import binascii
+
+import numpy as np
+from rest_framework import serializers
 
 from apps.api_v0.authentication import SessionAuthNoCSRF
 from apps.models.models import AccessTime, Camera, Person
@@ -17,33 +19,72 @@ class AccessModelSerializer(serializers.ModelSerializer):
         read_only_fields = ('camera', 'people', 'created_at')
 
     def validate_face_data(self, value):
-        """Валидация и преобразование base64 в бинарные данные"""
+        """Декодирование base64 и преобразование в вектор"""
         try:
-            return base64.b64decode(value)
-        except (TypeError, binascii.Error):
-            raise serializers.ValidationError("Некорректный формат base64")
+            # Удаление префикса данных при наличии
+            if ';base64,' in value:
+                header, data = value.split(';base64,', 1)
+            else:
+                data = value
+
+            decoded_data = base64.b64decode(data)
+            return decoded_data
+        except (TypeError, binascii.Error, ValueError) as e:
+            raise serializers.ValidationError(f"Некорректный формат данных: {str(e)}")
 
     def validate(self, attrs):
-        """Основная логика валидации"""
-        # Получаем уже декодированные бинарные данные
         face_data = attrs['face_data']
         camera_id = attrs['camera_id']
 
-        # Поиск камеры
         try:
             camera = Camera.objects.get(id=camera_id)
         except Camera.DoesNotExist:
             raise serializers.ValidationError({"camera_id": "Камера не найдена"})
 
-        # Поиск человека по биометрическим данным (заглушка)
-        person = Person.objects.filter(face_data=face_data).first()
+        try:
+            # Преобразование бинарных данных в numpy array
+            input_vector = np.frombuffer(face_data, dtype=np.float32)
 
-        if not person:
-            raise serializers.ValidationError({"face_data": "Человек не распознан"})
+            if input_vector.shape != (128,):
+                raise serializers.ValidationError({
+                    "face_data": "Неверная размерность вектора (ожидается 128 элементов)"
+                })
 
-        attrs['person'] = person
+        except Exception as e:
+            raise serializers.ValidationError({"face_data": str(e)})
+
+        # Остальная логика сравнения остается без изменений
+        input_norm = np.linalg.norm(input_vector)
+        persons = Person.objects.all()
+
+        best_match = None
+        min_distance = 1.0
+        threshold = 0.6
+
+        for person in persons:
+            try:
+                db_vector = np.frombuffer(person.face_data.tobytes(), dtype=np.float32)
+                distance = np.linalg.norm(np.array(db_vector) - input_norm)
+
+                if distance < min_distance and distance < (1 - threshold):
+                    min_distance = distance
+                    best_match = person
+            except Exception as e:
+                print(f"Error processing person {person.id}: {str(e)}")
+                continue
+
+        if not best_match:
+            raise serializers.ValidationError({
+                "detail": "Лицо не распознано",
+                "similarity": float(1 - min_distance),
+                "camera": camera.name
+            })
+
+        attrs['person'] = best_match
         attrs['camera'] = camera
         return attrs
+
+    # Остальные методы остаются без изменений
 
     def create(self, validated_data):
         person = validated_data['person']
